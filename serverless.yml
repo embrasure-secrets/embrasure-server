@@ -1,0 +1,15 @@
+service: 'embrasure'
+
+provider:
+    name: aws
+    runtime: nodejs18.x
+    stage: dev
+    region: us-east-1
+
+functions:
+    app:
+        handler: src/api/index.handler
+        events:
+            - http:
+                  path: /
+                  method: ANY
