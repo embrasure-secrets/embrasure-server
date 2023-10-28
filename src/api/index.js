@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/secret', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.query.key;
         // getSecret doesn't throw an error
         const secret = await getSecret(secretKey);
         if (secret === undefined) {
@@ -37,7 +37,7 @@ app.get('/secrets', async (req, res) => {
 
 app.delete('/secret', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.query.key;
         /* 
         deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
         */
