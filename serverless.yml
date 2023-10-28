@@ -11,5 +11,17 @@ functions:
         handler: src/api/index.handler
         events:
             - http:
-                  path: /
-                  method: ANY
+                  path: /secret
+                  method: GET
+            - http:
+                  path: /secret
+                  method: DELETE
+            - http:
+                  path: /secret
+                  method: PATCH
+            - http:
+                  path: /secrets
+                  method: GET
+            - http:
+                  path: /secrets
+                  method: POST

@@ -16,11 +16,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/secrets', async (req, res) => {
-    const secrets = await getAllSecrets();
-    res.json(secrets);
-});
-
 app.get('/secret', async (req, res) => {
     try {
         const secretKey = req.body.key;
@@ -33,6 +28,11 @@ app.get('/secret', async (req, res) => {
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+});
+
+app.get('/secrets', async (req, res) => {
+    const secrets = await getAllSecrets();
+    res.json(secrets);
 });
 
 app.delete('/secret', async (req, res) => {
@@ -92,4 +92,6 @@ app.post('/secrets', async (req, res) => {
 //     console.log(`Embrasure server running on port ${process.env.API_PORT}`);
 // });
 
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);
+
+export const handler = serverless(app);
