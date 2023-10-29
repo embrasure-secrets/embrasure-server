@@ -7,11 +7,11 @@ database that has the value in the key column that
 matches the value of the secretKey
 */
 
-async function getSecret(secretKey) {
+async function getSecret(table, secretKey) {
     try {
         // object with raw data for secret including metadata
         //   and unneeded fields
-        const rawSecretData = await Secrets.findOne({
+        const rawSecretData = await table.findOne({
             where: {
                 key: secretKey,
             },

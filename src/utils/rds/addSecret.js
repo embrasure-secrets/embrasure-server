@@ -6,11 +6,11 @@ the addSecret function will insert a new record
 into the Secrets database
 */
 
-async function addSecret(secretKey, secretValue) {
+async function addSecret(table, secretKey, secretValue) {
     try {
         // returns raw data of newly created secret
         // includes metadata and other fields
-        const newSecretData = await Secrets.create({
+        const newSecretData = await table.create({
             key: secretKey,
             value: secretValue,
         });

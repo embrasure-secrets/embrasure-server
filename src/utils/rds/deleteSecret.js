@@ -8,9 +8,9 @@ has the value in the key column that matches
 the secretKey argument
 */
 
-async function deleteSecret(secretKey) {
+async function deleteSecret(table, secretKey) {
     try {
-        const numberOfRecordsDeleted = await Secrets.destroy({
+        const numberOfRecordsDeleted = await table.destroy({
             where: {
                 key: secretKey,
             },
