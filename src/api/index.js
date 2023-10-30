@@ -16,14 +16,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/secrets', async (req, res) => {
-    const secrets = await getAllSecrets();
-    res.json(secrets);
-});
-
 app.get('/secret', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.query.key;
         // getSecret doesn't throw an error
         const secret = await getSecret(secretKey);
         if (secret === undefined) {
@@ -35,9 +30,14 @@ app.get('/secret', async (req, res) => {
     }
 });
 
+app.get('/secrets', async (req, res) => {
+    const secrets = await getAllSecrets();
+    res.json(secrets);
+});
+
 app.delete('/secret', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.query.key;
         /* 
         deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
         */
@@ -92,4 +92,6 @@ app.post('/secrets', async (req, res) => {
 //     console.log(`Embrasure server running on port ${process.env.API_PORT}`);
 // });
 
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);
+
+export const handler = serverless(app);
