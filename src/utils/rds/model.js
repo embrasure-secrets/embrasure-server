@@ -1,5 +1,4 @@
 import { DataTypes } from 'sequelize';
-import client from './dbClient.js';
 
 const Secrets = (dbClient) => {
     return dbClient.define('Secrets', {
@@ -20,19 +19,5 @@ const Secrets = (dbClient) => {
         },
     });
 };
-
-// const createTable = async () => {
-//     try {
-//         //https://sequelize.org/docs/v7/models/model-synchronization/
-//         //Creates the secrets table if it doesn't exist
-//         //and does nothing if the table exists
-//         await client.sync();
-//         // console.log('Secrets table is ready!');
-//     } catch (error) {
-//         console.error('Error in creating table: ', error);
-//     }
-// };
-
-// await createTable();
 
 export default Secrets;
