@@ -9,9 +9,9 @@ and update the data in the value column
 to the value of newSecretValue
 */
 
-async function updateSecret(secretKey, newSecretValue) {
+async function updateSecret(table, secretKey, newSecretValue) {
     try {
-        const numberOfRecordsUpdated = await Secrets.update(
+        const numberOfRecordsUpdated = await table.update(
             { value: newSecretValue },
             {
                 where: {
