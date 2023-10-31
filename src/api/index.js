@@ -12,6 +12,7 @@ import addSecret from '../utils/rds/addSecret.js';
 import addUser from '../utils/rds/addUser.js';
 import client from '../utils/rds/dbClient.js';
 import Secrets from '../utils/rds/model.js';
+import syncTable from '../utils/rds/syncTable.js';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
     const dbPort = req.header('db-port');
     const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
     const dbClient = client(dbClientValues);
+    syncTable(dbClient);
     res.locals.dbClient = dbClient;
     res.locals.secretsTable = Secrets(dbClient);
     next();
