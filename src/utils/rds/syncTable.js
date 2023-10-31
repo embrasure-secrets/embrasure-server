@@ -7,4 +7,4 @@ const syncTable = async (dbClient) => {
     }
 };
 
-export default createTable;
+export default syncTable;
