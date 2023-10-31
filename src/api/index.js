@@ -9,6 +9,7 @@ import getSecret from '../utils/rds/getSecret.js';
 import deleteSecret from '../utils/rds/deleteSecret.js';
 import updateSecret from '../utils/rds/updateSecret.js';
 import addSecret from '../utils/rds/addSecret.js';
+import addUser from '../utils/rds/addUser.js';
 import client from '../utils/rds/dbClient.js';
 import Secrets from '../utils/rds/model.js';
 
@@ -19,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
-    console.log('req.headers is: ', req.headers);
+    // console.log('req.headers is: ', req.headers);
     const dbUsername = req.header('db-username');
     const dbAuthToken = req.header('db-auth-token');
     const dbName = req.header('db-name');
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
     const dbPort = req.header('db-port');
     const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
     const dbClient = client(dbClientValues);
+    res.locals.dbClient = dbClient;
     res.locals.secretsTable = Secrets(dbClient);
     next();
 });
@@ -101,6 +103,15 @@ app.post('/secrets', async (req, res) => {
         if (!createdSecret) throw new Error("Couldn't create secret.");
 
         res.status(201).json({ key: createdSecret.key });
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+});
+
+app.post('/users', async (req, res) => {
+    try {
+        const usersCreated = await addUser(res.locals.dbClient, req.body.username);
+        res.status(201).json({ usersCreated });
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
