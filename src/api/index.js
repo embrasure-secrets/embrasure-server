@@ -1,5 +1,6 @@
 import serverless from 'serverless-http';
 import express from 'express';
+import helmet from 'helmet';
 // loadEnv should be probably moved to root directory
 import cors from 'cors';
 import '../utils/rds/loadEnv.js';
@@ -17,6 +18,7 @@ import syncTable from '../utils/rds/syncTable.js';
 
 const app = express();
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
