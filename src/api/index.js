@@ -19,6 +19,49 @@ import syncTable from '../utils/rds/syncTable.js';
 const app = express();
 
 app.use(helmet());
+
+// Content Security Policy (CSP) configuration
+app.use(
+    helmet.contentSecurityPolicy({
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", 'trusted-domain.com'],
+            styleSrc: ["'self'", 'cdn.example.com'],
+            // Add other directives as needed
+        },
+    })
+);
+
+// HTTP Strict Transport Security (HSTS) configuration
+app.use(
+    helmet.hsts({
+        maxAge: 31536000, // 1 year in seconds
+        includeSubDomains: true,
+    })
+);
+
+// X-Content-Type-Options configuration
+app.use(helmet.noSniff());
+
+// X-Frame-Options configuration
+app.use(helmet.frameguard({ action: 'deny' }));
+
+// X-XSS-Protection configuration
+app.use(helmet.xssFilter());
+
+// Referrer Policy configuration
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+
+// Feature Policy configuration
+app.use((req, res, next) => {
+    res.setHeader('Feature-Policy', "geolocation 'none'; microphone 'none'");
+    next();
+});
+
+// Optionally, hide the "X-Powered-By" header
+app.disable('x-powered-by');
+
+// Enable CORS
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -130,7 +173,5 @@ app.post('/users', async (req, res) => {
 // app.listen(process.env.API_PORT, () => {
 //     console.log(`Embrasure server running on port ${process.env.API_PORT}`);
 // });
-
-// module.exports.handler = serverless(app);
 
 export const handler = serverless(app);
