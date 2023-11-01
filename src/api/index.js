@@ -18,6 +18,7 @@ import syncTable from '../utils/rds/syncTable.js';
 
 const app = express();
 
+// Instantiate helmet
 app.use(helmet());
 
 // Content Security Policy (CSP) configuration
@@ -63,11 +64,15 @@ app.disable('x-powered-by');
 
 // Enable CORS
 app.use(cors());
+
+// Parse JSON request bodies
 app.use(express.json());
+
+// Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
+// Use request headers to connect to database
 app.use((req, res, next) => {
-    // console.log('req.headers is: ', req.headers);
     const dbUsername = req.header('db-username');
     const dbAuthToken = req.header('db-auth-token');
     const dbName = req.header('db-name');
@@ -81,6 +86,7 @@ app.use((req, res, next) => {
     next();
 });
 
+// Get a single secret by key
 app.get('/secret', async (req, res) => {
     try {
         const secretKey = req.query.key;
@@ -94,16 +100,19 @@ app.get('/secret', async (req, res) => {
     }
 });
 
+// Get all secrets
 app.get('/secrets', async (req, res) => {
     const secrets = await getAllSecrets(res.locals.secretsTable);
     res.json(secrets);
 });
 
+// Get all users
 app.get('/users', async (req, res) => {
     const users = await getAllUsers(res.locals.dbClient);
     res.json(users);
 });
 
+// Delete a secret by  key
 app.delete('/secret', async (req, res) => {
     try {
         const secretKey = req.body.key;
@@ -120,12 +129,7 @@ app.delete('/secret', async (req, res) => {
     }
 });
 
-/*
-https://sequelize.org/docs/v7/querying/update/#updating-a-row-using-modelupdate
-According to this link, `Model#update` only updates the fields that you specify, so it's more appropriate to use `PATCH` than `PUT`.
-
-Secret key and value are sent in JSON request body.
-*/
+// Specify a secret by key and update its value
 app.patch('/secret', async (req, res) => {
     try {
         const secretKey = req.body.key;
@@ -146,7 +150,7 @@ app.patch('/secret', async (req, res) => {
     }
 });
 
-// Returns secret key. Does not return secret value
+// Create a secret
 app.post('/secrets', async (req, res) => {
     try {
         const secretKey = req.body.key;
@@ -161,6 +165,7 @@ app.post('/secrets', async (req, res) => {
     }
 });
 
+// Create a user
 app.post('/users', async (req, res) => {
     try {
         const usersCreated = await addUser(res.locals.dbClient, req.body.username);
