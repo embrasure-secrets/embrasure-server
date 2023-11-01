@@ -27,4 +27,7 @@ functions:
                   method: POST
             - http:
                   path: /users
+                  method: GET
+            - http:
+                  path: /users
                   method: POST

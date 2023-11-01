@@ -9,6 +9,7 @@ import getSecret from '../utils/rds/getSecret.js';
 import deleteSecret from '../utils/rds/deleteSecret.js';
 import updateSecret from '../utils/rds/updateSecret.js';
 import addSecret from '../utils/rds/addSecret.js';
+import getAllUsers from '../utils/rds/getAllUsers.js';
 import addUser from '../utils/rds/addUser.js';
 import client from '../utils/rds/dbClient.js';
 import Secrets from '../utils/rds/model.js';
@@ -51,6 +52,11 @@ app.get('/secret', async (req, res) => {
 app.get('/secrets', async (req, res) => {
     const secrets = await getAllSecrets(res.locals.secretsTable);
     res.json(secrets);
+});
+
+app.get('/users', async (req, res) => {
+    const users = await getAllUsers(res.locals.dbClient);
+    res.json(users);
 });
 
 app.delete('/secret', async (req, res) => {
