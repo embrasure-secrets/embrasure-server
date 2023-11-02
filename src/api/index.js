@@ -158,13 +158,15 @@ app.post('/secrets', async (req, res) => {
     try {
         const secretKey = req.body.key;
         const secretValue = req.body.value;
-
         const createdSecret = await addSecret(res.locals.secretsTable, secretKey, secretValue);
-        if (!createdSecret) throw new Error("Couldn't create secret.");
 
-        res.status(201).json({ key: createdSecret.key });
+        if (!createdSecret) {
+            res.status(500).json({ message: "Couldn't create secret." });
+        } else {
+            res.status(201).json({ key: createdSecret.key });
+        }
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
