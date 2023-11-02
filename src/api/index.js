@@ -132,9 +132,9 @@ app.get('/users', async (req, res) => {
 });
 
 // Specify a secret by key and update its value
-app.patch('/secret', async (req, res) => {
+app.patch('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.params.key;
         const secretValue = req.body.value;
         const secretUpdated = !!(await updateSecret(
             res.locals.secretsTable,
@@ -143,10 +143,10 @@ app.patch('/secret', async (req, res) => {
         ));
 
         if (!secretUpdated) {
-            throw new Error('Secret could not be updated or was not found.');
+            res.status(404).json({ message: 'Secret could not be updated or was not found.' });
+        } else {
+            res.status(204).send();
         }
-        // returns no content
-        res.status(204).json({});
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
