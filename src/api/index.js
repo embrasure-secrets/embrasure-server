@@ -107,27 +107,28 @@ app.get('/secrets', async (req, res) => {
     res.json(secrets);
 });
 
-// Get all users
-app.get('/users', async (req, res) => {
-    const users = await getAllUsers(res.locals.dbClient);
-    res.json(users);
-});
-
 // Delete a secret by  key
-app.delete('/secret', async (req, res) => {
+app.delete('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.params.key;
         /* 
-        deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
-        */
+      deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
+      */
         const secretDeleted = !!(await deleteSecret(res.locals.secretsTable, secretKey));
+
         if (!secretDeleted) {
-            throw new Error('Secret could not be deleted or was not found.');
+            res.status(404).json({ message: 'Secret could not be deleted or was not found.' });
         }
         res.status(204).json({});
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+});
+
+// Get all users
+app.get('/users', async (req, res) => {
+    const users = await getAllUsers(res.locals.dbClient);
+    res.json(users);
 });
 
 // Specify a secret by key and update its value
