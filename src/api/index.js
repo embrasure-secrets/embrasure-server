@@ -94,7 +94,7 @@ app.get('/secrets/:key', async (req, res) => {
         if (secret === undefined) {
             res.status(404).json({ message: 'Secret not found' });
         } else {
-            res.json(secret);
+            res.status(200).json(secret);
         }
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
@@ -129,7 +129,7 @@ app.delete('/secrets/:key', async (req, res) => {
 // Get all users
 app.get('/users', async (req, res) => {
     const users = await getAllUsers(res.locals.dbClient);
-    res.json(users);
+    res.status(200).json(users);
 });
 
 // Specify a secret by key and update its value
