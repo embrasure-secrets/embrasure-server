@@ -168,7 +168,11 @@ app.post('/secrets', async (req, res) => {
 // Create a user
 app.post('/users', async (req, res) => {
     try {
-        const usersCreated = await addUser(res.locals.dbClient, req.body.username);
+        const usersCreated = await addUser(
+            res.locals.dbClient,
+            req.body.username,
+            req.body.hasWritePermissions
+        );
         res.status(201).json({ usersCreated });
     } catch (error) {
         res.status(404).json({ message: error.message });

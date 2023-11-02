@@ -3,7 +3,8 @@ If user is successfully created and granted permissions, returns 1.
 logs error otherwise.
 
 */
-async function addUser(client, username) {
+async function addUser(client, username, hasWritePermissions) {
+    console.log('hasWritePermissions', hasWritePermissions);
     // Admin runs embrasure createuser --name bob
     // Http post request made to /users
     // under the hood -
@@ -42,15 +43,19 @@ async function addUser(client, username) {
 
             { transaction }
         );
-
-        // we are hard-coding rds_superuser/permissions granted,
-        // but maybe we shouldnt, because we still need to define
-        // other roles that are just for read and read/write permissions
         await client.query(
-            `GRANT rds_superuser TO ${username};`,
+            `GRANT SELECT ON public."Secrets" TO ${username};`,
 
             { transaction }
         );
+
+        if (hasWritePermissions) {
+            await client.query(
+                `GRANT INSERT, UPDATE, DELETE ON public."Secrets" TO ${username};`,
+
+                { transaction }
+            );
+        }
 
         await transaction.commit();
         return 1;
