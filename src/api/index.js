@@ -87,16 +87,17 @@ app.use((req, res, next) => {
 });
 
 // Get a single secret by key
-app.get('/secret', async (req, res) => {
+app.get('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.query.key;
+        const secretKey = req.params.key;
         const secret = await getSecret(res.locals.secretsTable, secretKey);
         if (secret === undefined) {
-            throw new Error('Secret not found');
+            res.status(404).json({ message: 'Secret not found' });
+        } else {
+            res.status(200).json(secret);
         }
-        res.json(secret);
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
@@ -106,33 +107,35 @@ app.get('/secrets', async (req, res) => {
     res.json(secrets);
 });
 
-// Get all users
-app.get('/users', async (req, res) => {
-    const users = await getAllUsers(res.locals.dbClient);
-    res.json(users);
-});
-
 // Delete a secret by  key
-app.delete('/secret', async (req, res) => {
+app.delete('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.params.key;
         /* 
-        deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
-        */
+      deleteSecret returns 1 if a secret was found and deleted, 0 otherwise
+      */
         const secretDeleted = !!(await deleteSecret(res.locals.secretsTable, secretKey));
+
         if (!secretDeleted) {
-            throw new Error('Secret could not be deleted or was not found.');
+            res.status(404).json({ message: 'Secret could not be deleted or was not found.' });
+        } else {
+            res.status(204).send();
         }
-        res.status(204).json({});
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 });
 
+// Get all users
+app.get('/users', async (req, res) => {
+    const users = await getAllUsers(res.locals.dbClient);
+    res.status(200).json(users);
+});
+
 // Specify a secret by key and update its value
-app.patch('/secret', async (req, res) => {
+app.patch('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.body.key;
+        const secretKey = req.params.key;
         const secretValue = req.body.value;
         const secretUpdated = !!(await updateSecret(
             res.locals.secretsTable,
@@ -141,10 +144,10 @@ app.patch('/secret', async (req, res) => {
         ));
 
         if (!secretUpdated) {
-            throw new Error('Secret could not be updated or was not found.');
+            res.status(404).json({ message: 'Secret could not be updated or was not found.' });
+        } else {
+            res.status(204).send();
         }
-        // returns no content
-        res.status(204).json({});
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
@@ -155,13 +158,15 @@ app.post('/secrets', async (req, res) => {
     try {
         const secretKey = req.body.key;
         const secretValue = req.body.value;
-
         const createdSecret = await addSecret(res.locals.secretsTable, secretKey, secretValue);
-        if (!createdSecret) throw new Error("Couldn't create secret.");
 
-        res.status(201).json({ key: createdSecret.key });
+        if (!createdSecret) {
+            res.status(500).json({ message: "Couldn't create secret." });
+        } else {
+            res.status(201).json({ key: createdSecret.key });
+        }
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
