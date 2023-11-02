@@ -118,8 +118,9 @@ app.delete('/secrets/:key', async (req, res) => {
 
         if (!secretDeleted) {
             res.status(404).json({ message: 'Secret could not be deleted or was not found.' });
+        } else {
+            res.status(204).send();
         }
-        res.status(204).json({});
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
