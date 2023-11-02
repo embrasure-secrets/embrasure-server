@@ -3,7 +3,7 @@ service: 'embrasure'
 provider:
     name: aws
     runtime: nodejs18.x
-    stage: dev
+    stage: v1
     region: us-east-1
 
 functions:
