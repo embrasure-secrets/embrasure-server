@@ -87,16 +87,17 @@ app.use((req, res, next) => {
 });
 
 // Get a single secret by key
-app.get('/secret', async (req, res) => {
+app.get('/secrets/:key', async (req, res) => {
     try {
-        const secretKey = req.query.key;
+        const secretKey = req.params.key;
         const secret = await getSecret(res.locals.secretsTable, secretKey);
         if (secret === undefined) {
-            throw new Error('Secret not found');
+            res.status(404).json({ message: 'Secret not found' });
+        } else {
+            res.json(secret);
         }
-        res.json(secret);
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
