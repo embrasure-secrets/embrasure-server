@@ -16,14 +16,13 @@ async function deleteUser(client, username) {
     const transaction = await client.transaction();
 
     try {
-        const revokeQuery = await client.query(
+        await client.query(
             `REVOKE INSERT, UPDATE, DELETE, SELECT ON public."Secrets" FROM ${username};`
         );
 
-        console.log('revoke query', revokeQuery);
+        await client.query(`REVOKE USAGE ON SEQUENCE "Secrets_id_seq" FROM ${username}`);
 
-        const dropQuery = await client.query(`DROP ROLE ${username}`);
-        console.log('drop query', dropQuery);
+        await client.query(`DROP ROLE ${username}`);
 
         await transaction.commit();
         return 1;
