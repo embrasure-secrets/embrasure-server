@@ -11,23 +11,26 @@ functions:
         handler: src/api/index.handler
         events:
             - http:
-                  path: /secret
+                  path: /secrets/{key}
                   method: GET
             - http:
-                  path: /secret
+                  path: /secrets/{key}
                   method: DELETE
             - http:
-                  path: /secret
+                  path: /secrets
+                  method: GET
+            - http:
+                  path: /secrets
+                  method: POST
+            - http:
+                  path: /secrets/{key}
                   method: PATCH
             - http:
-                  path: /secrets
-                  method: GET
-            - http:
-                  path: /secrets
-                  method: POST
-            - http:
                   path: /users
                   method: GET
             - http:
                   path: /users
                   method: POST
+            - http:
+                  path: /users/{username}
+                  method: DELETE
