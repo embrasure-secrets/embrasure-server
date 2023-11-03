@@ -1,4 +1,5 @@
 service: 'embrasure'
+useDotenv: true
 
 provider:
     name: aws
@@ -15,6 +16,12 @@ provider:
 functions:
     app:
         handler: src/api/index.handler
+        vpc:
+            securityGroupIds:
+                - ${env:SECURITY_GROUP_ID} # Replace with your security group ID
+            subnetIds:
+                - ${env:SUBNET_0_ID} # Replace with your subnet ID
+                - ${env:SUBNET_1_ID} # Add more subnet IDs if needed
         events:
             - http:
                   path: /secret
