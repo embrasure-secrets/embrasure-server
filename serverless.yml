@@ -5,6 +5,12 @@ provider:
     runtime: nodejs18.x
     stage: v1
     region: us-east-1
+    iam:
+        role:
+            statements:
+                - Effect: Allow
+                  Action: '*'
+                  Resource: '*'
 
 functions:
     app:
