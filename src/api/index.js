@@ -12,6 +12,7 @@ import updateSecret from '../utils/rds/updateSecret.js';
 import addSecret from '../utils/rds/addSecret.js';
 import getAllUsers from '../utils/rds/getAllUsers.js';
 import addUser from '../utils/rds/addUser.js';
+import deleteUser from '../utils/rds/deleteUser.js';
 import client from '../utils/rds/dbClient.js';
 import Secrets from '../utils/rds/model.js';
 import syncTable from '../utils/rds/syncTable.js';
@@ -118,6 +119,25 @@ app.delete('/secrets/:key', async (req, res) => {
 
         if (!secretDeleted) {
             res.status(404).json({ message: 'Secret could not be deleted or was not found.' });
+        } else {
+            res.status(204).send();
+        }
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+});
+
+// Delete a secret by  key
+app.delete('/users/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+        /* 
+    deleteUser returns 1 if a user was found and deleted, 0 otherwise
+    */
+        const userDeleted = !!(await deleteUser(res.locals.dbClient, username));
+
+        if (!userDeleted) {
+            res.status(404).json({ message: 'User could not be deleted or was not found.' });
         } else {
             res.status(204).send();
         }
