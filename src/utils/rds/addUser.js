@@ -4,7 +4,6 @@ logs error otherwise.
 
 */
 async function addUser(client, username, hasWritePermissions) {
-    console.log('hasWritePermissions', hasWritePermissions);
     // Admin runs embrasure createuser --name bob
     // Http post request made to /users
     // under the hood -
@@ -43,18 +42,18 @@ async function addUser(client, username, hasWritePermissions) {
 
             { transaction }
         );
-        await client.query(
-            `GRANT SELECT ON public."Secrets" TO ${username};`,
-
-            { transaction }
-        );
 
         if (hasWritePermissions) {
             await client.query(
-                `GRANT INSERT, UPDATE, DELETE ON public."Secrets" TO ${username};`,
-
+                `GRANT INSERT, UPDATE, DELETE, SELECT ON public."Secrets" TO ${username};`,
                 { transaction }
             );
+
+            await client.query(`GRANT USAGE ON SEQUENCE "Secrets_id_seq" TO ${username}`, {
+                transaction,
+            });
+        } else {
+            await client.query(`GRANT SELECT ON public."Secrets" TO ${username};`, { transaction });
         }
 
         await transaction.commit();
