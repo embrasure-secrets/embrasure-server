@@ -1,5 +1,3 @@
-import Secrets from './model.js';
-
 /*
 Given a secretKey of type string, 
 the deleteSecret function will delete
@@ -22,10 +20,5 @@ async function deleteSecret(table, secretKey) {
         console.error('Error in deleting secret: ', error);
     }
 }
-
-// deleteSecret('google');
-// deleteSecret("mongodb");
-// deleteSecret("aws");
-// deleteSecret("uber");
 
 export default deleteSecret;

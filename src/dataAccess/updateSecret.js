@@ -1,5 +1,3 @@
-import Secrets from './model.js';
-
 /*
 Given a secretKey and newSecretValue of type string, 
 the updateSecret function will update
@@ -22,12 +20,9 @@ async function updateSecret(table, secretKey, newSecretValue) {
         );
 
         return numberOfRecordsUpdated;
-        // always returns 1
     } catch (error) {
         console.error('Error in updating record: ', error);
     }
 }
-
-// updateSecret("port", "3001");
 
 export default updateSecret;
