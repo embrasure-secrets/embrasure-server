@@ -47,7 +47,7 @@ usersRouter.post('/', async (req, res) => {
 });
 
 // Edit a user's read/write permission
-usersRouter.post('/:username', async (req, res) => {
+usersRouter.put('/:username', async (req, res) => {
     try {
         const editPermissionResult = await editUserPermission(
             res.locals.dbClient,
