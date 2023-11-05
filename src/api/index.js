@@ -13,6 +13,7 @@ import addSecret from '../dataAccess/addSecret.js';
 import getAllUsers from '../dataAccess/getAllUsers.js';
 import addUser from '../dataAccess/addUser.js';
 import getUserPermissions from '../dataAccess/getUserPermissions.js';
+import editUserPermission from '../dataAccess/editUserPermission.js';
 import deleteUser from '../dataAccess/deleteUser.js';
 import client from '../dataAccess/dbClient.js';
 import Secrets from '../dataAccess/model.js';
@@ -206,6 +207,27 @@ app.get('/users/:username', async (req, res) => {
             });
         } else {
             res.status(200).json(userPermissions);
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Edit a user's read/write permission
+app.post('/users/:username', async (req, res) => {
+    try {
+        const editPermissionResult = await editUserPermission(
+            res.locals.dbClient,
+            req.body.username,
+            req.body.setWritePermissionTo
+        );
+
+        if (editPermissionResult === undefined) {
+            res.status(404).json({
+                message: 'User was not found',
+            });
+        } else {
+            res.status(200).json(editPermissionResult);
         }
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
