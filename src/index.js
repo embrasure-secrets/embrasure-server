@@ -3,21 +3,21 @@ import express from 'express';
 import helmet from 'helmet';
 // loadEnv should be probably moved to root directory
 import cors from 'cors';
-import '../dataAccess/loadEnv.js';
+import './dataAccess/loadEnv.js';
 
-import getAllSecrets from '../dataAccess/getAllSecrets.js';
-import getSecret from '../dataAccess/getSecret.js';
-import deleteSecret from '../dataAccess/deleteSecret.js';
-import updateSecret from '../dataAccess/updateSecret.js';
-import addSecret from '../dataAccess/addSecret.js';
-import getAllUsers from '../dataAccess/getAllUsers.js';
-import addUser from '../dataAccess/addUser.js';
-import getUserPermissions from '../dataAccess/getUserPermissions.js';
-import editUserPermission from '../dataAccess/editUserPermission.js';
-import deleteUser from '../dataAccess/deleteUser.js';
-import client from '../dataAccess/dbClient.js';
-import Secrets from '../dataAccess/model.js';
-import syncTable from '../dataAccess/syncTable.js';
+import getAllSecrets from './dataAccess/getAllSecrets.js';
+import getSecret from './dataAccess/getSecret.js';
+import deleteSecret from './dataAccess/deleteSecret.js';
+import updateSecret from './dataAccess/updateSecret.js';
+import addSecret from './dataAccess/addSecret.js';
+import getAllUsers from './dataAccess/getAllUsers.js';
+import addUser from './dataAccess/addUser.js';
+import getUserPermissions from './dataAccess/getUserPermissions.js';
+import editUserPermission from './dataAccess/editUserPermission.js';
+import deleteUser from './dataAccess/deleteUser.js';
+import client from './dataAccess/dbClient.js';
+import Secrets from './dataAccess/model.js';
+import syncTable from './dataAccess/syncTable.js';
 
 const app = express();
 
