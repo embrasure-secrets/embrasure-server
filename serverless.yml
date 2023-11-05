@@ -49,4 +49,7 @@ functions:
                   method: DELETE
             - http:
                   path: /users/{username}
-                  method: get
+                  method: GET
+            - http:
+                  path: /users/{username}
+                  method: POST
