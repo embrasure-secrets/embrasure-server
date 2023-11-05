@@ -12,6 +12,7 @@ import updateSecret from '../dataAccess/updateSecret.js';
 import addSecret from '../dataAccess/addSecret.js';
 import getAllUsers from '../dataAccess/getAllUsers.js';
 import addUser from '../dataAccess/addUser.js';
+import getUserPermissions from '../dataAccess/getUserPermissions.js';
 import deleteUser from '../dataAccess/deleteUser.js';
 import client from '../dataAccess/dbClient.js';
 import Secrets from '../dataAccess/model.js';
@@ -189,6 +190,25 @@ app.post('/users', async (req, res) => {
         res.status(201).json({ usersCreated });
     } catch (error) {
         res.status(404).json({ message: error.message });
+    }
+});
+
+// Get a user's permissions by username
+app.get('/users/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+
+        const userPermissions = await getUserPermissions(res.locals.dbClient, username);
+
+        if (userPermissions.length === 0) {
+            res.status(404).json({
+                message: 'User was not found',
+            });
+        } else {
+            res.status(200).json(userPermissions);
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
