@@ -15,7 +15,7 @@ provider:
 
 functions:
     app:
-        handler: src/api/index.handler
+        handler: src/index.handler
         vpc:
             securityGroupIds:
                 - ${env:SECURITY_GROUP_ID} # Replace with your security group ID
@@ -52,4 +52,4 @@ functions:
                   method: GET
             - http:
                   path: /users/{username}
-                  method: POST
+                  method: PUT
