@@ -47,3 +47,9 @@ functions:
             - http:
                   path: /users/{username}
                   method: DELETE
+            - http:
+                  path: /users/{username}
+                  method: GET
+            - http:
+                  path: /users/{username}
+                  method: POST
