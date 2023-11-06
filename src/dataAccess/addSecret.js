@@ -1,5 +1,3 @@
-import Secrets from './model.js';
-
 /*
 Given a key and value both of type string, 
 the addSecret function will insert a new record
@@ -20,7 +18,6 @@ async function addSecret(table, secretKey, secretValue) {
             value: newSecretData.dataValues.value,
         };
         return secretFormatted;
-        // { key: 'exampleKey1', value: 'exampleValue1' }
     } catch (error) {
         console.error('Error in creating a new record: ', error);
     }

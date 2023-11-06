@@ -3,36 +3,24 @@ import express from 'express';
 import helmet from 'helmet';
 // loadEnv should be probably moved to root directory
 import cors from 'cors';
-import '../utils/rds/loadEnv.js';
+import '../dataAccess/loadEnv.js';
 
-import getAllSecrets from '../utils/rds/getAllSecrets.js';
-import getSecret from '../utils/rds/getSecret.js';
-import deleteSecret from '../utils/rds/deleteSecret.js';
-import updateSecret from '../utils/rds/updateSecret.js';
-import addSecret from '../utils/rds/addSecret.js';
-import getAllUsers from '../utils/rds/getAllUsers.js';
-import addUser from '../utils/rds/addUser.js';
-import deleteUser from '../utils/rds/deleteUser.js';
-import client from '../utils/rds/dbClient.js';
-import Secrets from '../utils/rds/model.js';
-import syncTable from '../utils/rds/syncTable.js';
+import getAllSecrets from '../dataAccess/getAllSecrets.js';
+import getSecret from '../dataAccess/getSecret.js';
+import deleteSecret from '../dataAccess/deleteSecret.js';
+import updateSecret from '../dataAccess/updateSecret.js';
+import addSecret from '../dataAccess/addSecret.js';
+import getAllUsers from '../dataAccess/getAllUsers.js';
+import addUser from '../dataAccess/addUser.js';
+import deleteUser from '../dataAccess/deleteUser.js';
+import client from '../dataAccess/dbClient.js';
+import Secrets from '../dataAccess/model.js';
+import syncTable from '../dataAccess/syncTable.js';
 
 const app = express();
 
 // Instantiate helmet
 app.use(helmet());
-
-// Content Security Policy (CSP) configuration
-app.use(
-    helmet.contentSecurityPolicy({
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", 'trusted-domain.com'],
-            styleSrc: ["'self'", 'cdn.example.com'],
-            // Add other directives as needed
-        },
-    })
-);
 
 // HTTP Strict Transport Security (HSTS) configuration
 app.use(

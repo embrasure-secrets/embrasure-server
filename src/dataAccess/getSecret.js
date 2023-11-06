@@ -1,5 +1,3 @@
-import Secrets from './model.js';
-
 /*
 Given a secretKey of type string, 
 the getSecret function will return an object from the secrets 
@@ -22,12 +20,9 @@ async function getSecret(table, secretKey) {
             value: rawSecretData.dataValues.value,
         };
         return secretFormatted;
-        // { key: 'exampleKey1', value: 'exampleValue1' }
     } catch (error) {
         console.error('Error in getting all secrets: ', error);
     }
 }
-
-// getSecret("spotify");
 
 export default getSecret;
