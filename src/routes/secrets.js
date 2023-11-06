@@ -86,4 +86,18 @@ secretsRouter.post('/', async (req, res) => {
     }
 });
 
+secretsRouter.use((req, res, next) => {
+    console.log({
+        actor: req.header('db-username'),
+        ip_address: req.ip, //
+        request_type: req.method,
+        resource_route: req.path,
+        is_request_authenticated: false, //
+        is_request_authorized: false, //
+        http_status_code: res.statusCode,
+        timestamp: Date.now(),
+    });
+    next();
+});
+
 export default secretsRouter;

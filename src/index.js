@@ -7,8 +7,10 @@ import './dataAccess/loadEnv.js';
 
 import secretsRouter from './routes/secrets.js';
 import usersRouter from './routes/users.js';
+import addLog from './dataAccess/addLog.js';
+import getAllLogs from './dataAccess/getAllLogs.js';
 import client from './dataAccess/dbClient.js';
-import Secrets from './dataAccess/model.js';
+import { Secrets, Logs } from './dataAccess/model.js';
 import syncTable from './dataAccess/syncTable.js';
 
 const app = express();
@@ -66,9 +68,27 @@ app.use((req, res, next) => {
     syncTable(dbClient);
     res.locals.dbClient = dbClient;
     res.locals.secretsTable = Secrets(dbClient);
+    res.locals.logsTable = Logs(dbClient);
     next();
 });
 
+app.use(async (req, res, next) => {
+    const logData = {
+        actor: req.header('db-username'),
+        ip_address: req.ip, //
+        request_type: req.method,
+        resource_route: req.path,
+        is_request_authenticated: false, //
+        is_request_authorized: false, //
+        http_status_code: res.statusCode,
+        timestamp: Date.now(),
+    };
+    await addLog(res.locals.logsTable, logData);
+    // const logs = await getAllLogs(res.locals.logsTable);
+    // console.log(logs);
+
+    next();
+});
 app.use('/secrets', secretsRouter);
 app.use('/users', usersRouter);
 
