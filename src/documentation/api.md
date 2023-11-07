@@ -10,6 +10,7 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Get a Single Secret](#get-a-single-secret)
     -   [Delete a Secret](#delete-a-secret)
     -   [Update a Secret](#update-a-secret)
+    -   [Create a Secret](#create-a-secret)
 
 ## Introduction
 
@@ -99,7 +100,7 @@ DELETE /secrets/mySecretKey
 
 No content in the response body.
 
-### Updating a Secret
+### Update a Secret
 
 -   **Endpoint:** `PATCH /secrets/:key`
 -   **Description:** Update the value of a secret by providing its key.
@@ -129,3 +130,37 @@ PATCH /secrets/mySecretKey
 **Example Response (204 No Content):**
 
 No content in the response body.
+
+### Create a Secret
+
+-   **Endpoint:** `POST /secrets`
+-   **Description:** Create a new secret.
+-   **Request Body:**
+    -   `key``: The key of the new secret.
+    -   `value`: The new value for the secret.
+-   **Responses:**
+    -   `201 Created`: Secret successfully created. Returns the key of the created secret.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+POST /secrets
+```
+
+**Example Request Body:**
+
+```json
+{
+    "key": "NewSecretKey",
+    "value": "New Secret Value"
+}
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+    "key": "NewSecretKey"
+}
+```
