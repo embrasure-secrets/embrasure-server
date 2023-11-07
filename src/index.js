@@ -12,7 +12,6 @@ import getAllLogs from './dataAccess/getAllLogs.js';
 import client from './dataAccess/dbClient.js';
 import { Secrets, Logs } from './dataAccess/model.js';
 import initializeTables from './dataAccess/initializeTables.js';
-import syncTable from './dataAccess/syncTable.js';
 
 const app = express();
 let initializedTables = false;
@@ -78,12 +77,13 @@ app.use(async (req, res, next) => {
         initializedTables = true;
     }
 
-    syncTable(res.locals.dbClient);
-    res.locals.secretsTable = Secrets(res.locals.dbClient);
-    res.locals.logsTable = Logs(res.locals.dbClient);
-
+    res.locals.secretsTable = await Secrets(res.locals.dbClient);
+    res.locals.logsTable = await Logs(res.locals.dbClient);
     next();
 });
+
+app.use('/secrets', secretsRouter);
+app.use('/users', usersRouter);
 
 app.use(async (req, res, next) => {
     const logData = {
@@ -96,13 +96,10 @@ app.use(async (req, res, next) => {
         http_status_code: res.statusCode,
         timestamp: Date.now(),
     };
-    console.log('logData is: ', logData);
+
     await addLog(res.locals.logsTable, logData); // <-- THIS BITCH IS THE PROBLEM
     next();
 });
-
-app.use('/secrets', secretsRouter);
-app.use('/users', usersRouter);
 
 // app.get('/logs', async (req, res) => {
 //     try {
