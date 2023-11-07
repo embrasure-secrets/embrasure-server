@@ -30,8 +30,7 @@ Base URLs:
 -   **Endpoint:** `GET /secrets`
 -   **Description:** Retrieve a list of all secrets.
 -   **Responses:**
-    -   `200 OK`: Successfully retrieved the secret. Returns the secret data.
-    -   `404 Not Found`: Secret with the provided key does not exist.
+    -   `200 OK`: Successfully retrieved the list of secrets.
     -   `500 Internal Server Error`: An error occurred on the server.
 
 **Example Request:**
