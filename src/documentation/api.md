@@ -1,6 +1,6 @@
 # Embrasure API Documentation
 
-This documentation provides information on the RESTful API endpoints for manaing secrets and users with the Embrasure Secrets API. Secrets are key-value pairs stored in a database, and users have permissions for accessing and managing secrets.
+This documentation provides information on the RESTful API endpoints for managing secrets and users with the Embrasure Secrets API. Secrets are key-value pairs stored in a database, and users have permissions for accessing and managing secrets.
 
 ## Table of Contents
 
@@ -27,7 +27,15 @@ Base URLs:
 -   Secrets: `/secrets`
 -   Users: `/users`
 
-## Secrets API
+### Authentication
+
+The Embrasure API requires authentication via request headers. You should include the following headers in your requests:
+
+-   `db-username`: Your database username.
+-   `db-auth-token`: Your database authentication token.
+-   `db-name`: The name of the database.
+-   `db-host`: The database host URL.
+-   `db-port`: The database port.
 
 ### Get All Secrets
 
