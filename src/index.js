@@ -11,9 +11,11 @@ import addLog from './dataAccess/addLog.js';
 import getAllLogs from './dataAccess/getAllLogs.js';
 import client from './dataAccess/dbClient.js';
 import { Secrets, Logs } from './dataAccess/model.js';
+import initializeTables from './dataAccess/initializeTables.js';
 import syncTable from './dataAccess/syncTable.js';
 
 const app = express();
+let initializedTables = false;
 
 // Instantiate helmet
 app.use(helmet());
@@ -65,10 +67,21 @@ app.use((req, res, next) => {
     const dbPort = req.header('db-port');
     const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
     const dbClient = client(dbClientValues);
-    syncTable(dbClient);
     res.locals.dbClient = dbClient;
-    res.locals.secretsTable = Secrets(dbClient);
-    res.locals.logsTable = Logs(dbClient);
+
+    next();
+});
+
+app.use(async (req, res, next) => {
+    if (!initializedTables) {
+        await initializeTables(res.locals.dbClient);
+        initializedTables = true;
+    }
+
+    syncTable(res.locals.dbClient);
+    res.locals.secretsTable = Secrets(res.locals.dbClient);
+    res.locals.logsTable = Logs(res.locals.dbClient);
+
     next();
 });
 
@@ -83,13 +96,21 @@ app.use(async (req, res, next) => {
         http_status_code: res.statusCode,
         timestamp: Date.now(),
     };
-    await addLog(res.locals.logsTable, logData);
-    // const logs = await getAllLogs(res.locals.logsTable);
-    // console.log(logs);
-
+    console.log('logData is: ', logData);
+    await addLog(res.locals.logsTable, logData); // <-- THIS BITCH IS THE PROBLEM
     next();
 });
+
 app.use('/secrets', secretsRouter);
 app.use('/users', usersRouter);
+
+// app.get('/logs', async (req, res) => {
+//     try {
+//         const logs = await getAllLogs(res.locals.logsTable);
+//         res.json(logs);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Internal Server Error' });
+//     }
+// });
 
 export const handler = serverless(app);
