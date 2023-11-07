@@ -14,6 +14,7 @@ This documentation provides information on the RESTful API endpoints for manaing
 -   [Users API](#users-api)
     -   [Get All Users](#get-all-users)
     -   [Get User Permissions](#get-user-permissions)
+    -   [Delete User](#delete-user)
 
 ## Introduction
 
@@ -220,3 +221,24 @@ GET /users/johndoe
 ```json
 ["SELECT"]
 ```
+
+## Delete user
+
+-   **Endpoint:** `DELETE /users/:username`
+-   **Description:**Delete a user by providing their username.
+-   **Request Parameters:**
+    -   `username`: The username of the user to delete.
+-   **Responses:**
+    -   `204 No Content`: User successfully deleted.
+    -   `404 Not Found`: User with the provided username does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+DELETE /users/johndoe
+```
+
+**Example Response (204 No Content):**
+
+No content in the response body.
