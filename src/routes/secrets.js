@@ -8,7 +8,7 @@ import addSecret from '../dataAccess/addSecret.js';
 const secretsRouter = express.Router();
 
 // Get a single secret by key
-secretsRouter.get('/:key', async (req, res) => {
+secretsRouter.get('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         const secret = await getSecret(res.locals.secretsTable, secretKey);
@@ -17,19 +17,21 @@ secretsRouter.get('/:key', async (req, res) => {
         } else {
             res.status(200).json(secret);
         }
+        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
 // Get all secrets
-secretsRouter.get('/', async (req, res) => {
+secretsRouter.get('/', async (req, res, next) => {
     const secrets = await getAllSecrets(res.locals.secretsTable);
     res.json(secrets);
+    next();
 });
 
 // Delete a secret by  key
-secretsRouter.delete('/:key', async (req, res) => {
+secretsRouter.delete('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         /* 
@@ -42,13 +44,14 @@ secretsRouter.delete('/:key', async (req, res) => {
         } else {
             res.status(204).send();
         }
+        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 });
 
 // Specify a secret by key and update its value
-secretsRouter.patch('/:key', async (req, res) => {
+secretsRouter.patch('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         const secretValue = req.body.value;
@@ -63,13 +66,14 @@ secretsRouter.patch('/:key', async (req, res) => {
         } else {
             res.status(204).send();
         }
+        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 });
 
 // Create a secret
-secretsRouter.post('/', async (req, res) => {
+secretsRouter.post('/', async (req, res, next) => {
     console.log('req body', req.body);
     try {
         const secretKey = req.body.key;
@@ -81,23 +85,10 @@ secretsRouter.post('/', async (req, res) => {
         } else {
             res.status(201).json({ key: createdSecret.key });
         }
+        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
-});
-
-secretsRouter.use((req, res, next) => {
-    console.log({
-        actor: req.header('db-username'),
-        ip_address: req.ip, //
-        request_type: req.method,
-        resource_route: req.path,
-        is_request_authenticated: false, //
-        is_request_authorized: false, //
-        http_status_code: res.statusCode,
-        timestamp: Date.now(),
-    });
-    next();
 });
 
 export default secretsRouter;
