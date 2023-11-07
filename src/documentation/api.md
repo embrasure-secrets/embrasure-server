@@ -15,6 +15,7 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Get All Users](#get-all-users)
     -   [Get User Permissions](#get-user-permissions)
     -   [Delete User](#delete-user)
+    -   [Edit User Permissions](#edit-user-permissions)
 
 ## Introduction
 
@@ -199,7 +200,7 @@ GET /users
 ]
 ```
 
-## Get User Permissions
+### Get User Permissions
 
 -   **Endpoint:** `GET /users/:username`
 -   **Description:** Retrieve a user's permissions by providing their username.
@@ -222,7 +223,7 @@ GET /users/johndoe
 ["SELECT"]
 ```
 
-## Delete user
+### Delete user
 
 -   **Endpoint:** `DELETE /users/:username`
 -   **Description:**Delete a user by providing their username.
@@ -242,3 +243,34 @@ DELETE /users/johndoe
 **Example Response (204 No Content):**
 
 No content in the response body.
+
+### Edit User Permissions
+
+-   **Endpoint:** `PUT /users/:username`
+-   **Description:** Edit a user's read/write permission by providing their username.
+-   **Request Parameters:**
+    -   `setWritePermissionTo`: A boolean indicating whether to set the write permission to `true` or `false`.
+-   **Responses:**
+    -   `200 OK`: User's permission successfully updated. Returns the updated user data.
+    -   `404 Not Found`: User with the provided username does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+PUT /users/johndoe
+```
+
+**Example Request Body:**
+
+```json
+{
+    "setWritePermissionTo": true
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{ "writePermission": true }
+```
