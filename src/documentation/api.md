@@ -16,6 +16,7 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Get User Permissions](#get-user-permissions)
     -   [Delete User](#delete-user)
     -   [Edit User Permissions](#edit-user-permissions)
+    -   [Create User](#create-user)
 
 ## Introduction
 
@@ -140,7 +141,7 @@ No content in the response body.
 -   **Endpoint:** `POST /secrets`
 -   **Description:** Create a new secret.
 -   **Request Body:**
-    -   `key``: The key of the new secret.
+    -   `key`: The key of the new secret.
     -   `value`: The new value for the secret.
 -   **Responses:**
     -   `201 Created`: Secret successfully created. Returns the key of the created secret.
@@ -273,4 +274,40 @@ PUT /users/johndoe
 
 ```json
 { "writePermission": true }
+```
+
+### Create User
+
+-   **Endpoint:** `POST /users`
+-   **Description:** Create a new user.
+-   **Request Body:**
+
+    -   `username`: The username of the new user.
+    -   `hasWritePermissions`: A boolean indicating whether the user has write permissions.
+
+-   **Responses:**
+    -   `201 Created`: User successfully created. Returns the username of the created user.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+POST /users
+```
+
+**Example Request Body:**
+
+```json
+{
+    "username": "newuser",
+    "hasWritePermissions": true
+}
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+    "username": "newuser"
+}
 ```
