@@ -11,6 +11,8 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Delete a Secret](#delete-a-secret)
     -   [Update a Secret](#update-a-secret)
     -   [Create a Secret](#create-a-secret)
+-   [Users API](#users-api)
+    -   [Get All Users](#get-all-users)
 
 ## Introduction
 
@@ -163,4 +165,35 @@ POST /secrets
 {
     "key": "NewSecretKey"
 }
+```
+
+## Users API
+
+### Get All Users
+
+-   **Endpoint:** `GET /users`
+-   **Description:** Retrieve a list of all users.
+-   **Responses:**
+    -   `200 OK`: Successfully retrieved the list of users.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+GET /users
+```
+
+**Example Response (200 OK):**
+
+```json
+[
+    {
+        "username": "johndoe",
+        "hasWritePermissions": true
+    },
+    {
+        "username": "janedoe",
+        "hasWritePermissions": false
+    }
+]
 ```
