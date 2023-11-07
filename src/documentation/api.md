@@ -13,6 +13,7 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Create a Secret](#create-a-secret)
 -   [Users API](#users-api)
     -   [Get All Users](#get-all-users)
+    -   [Get User Permissions](#get-user-permissions)
 
 ## Introduction
 
@@ -195,4 +196,27 @@ GET /users
         "hasWritePermissions": false
     }
 ]
+```
+
+## Get User Permissions
+
+-   **Endpoint:** `GET /users/:username`
+-   **Description:** Retrieve a user's permissions by providing their username.
+-   **Request Parameters:**
+    -   `username`: The username of the user to retrieve permissions for.
+-   **Responses:**
+    -   `200 OK`: Successfully retrieved the user's permissions. Returns an array of permissions.
+    -   `404 Not Found`: User with the provided username does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+GET /users/johndoe
+```
+
+**Example Response (200 OK):**
+
+```json
+["SELECT"]
 ```
