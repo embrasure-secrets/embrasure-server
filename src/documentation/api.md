@@ -5,6 +5,8 @@ This documentation provides information on the RESTful API endpoints for manaing
 ## Table of Contents
 
 -   [Introduction](#introduction)
+-   [Secrets API](#secrets-api)
+    -   [Get All Secrets](#get-all-secrets)
 
 ## Introduction
 
@@ -14,3 +16,35 @@ Base URLs:
 
 -   Secrets: `/secrets`
 -   Users: `/users`
+
+## Secrets API
+
+### Get All Secrets
+
+-   **Endpoint:** `GET /secrets`
+-   **Description:** Retrieve a list of all secrets.
+-   **Responses:**
+    -   `200 OK`: Successfully retrieved the secret. Returns the secret data.
+    -   `404 Not Found`: Secret with the provided key does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+GET /secrets
+```
+
+**Example Response (200 OK):**
+
+```json
+[
+    {
+        "key": "spotify",
+        "value": "asdv234asdv4"
+    },
+    {
+        "key": "github",
+        "value": "ac!@#$WDSca"
+    }
+]
+```
