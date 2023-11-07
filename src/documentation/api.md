@@ -9,6 +9,7 @@ This documentation provides information on the RESTful API endpoints for manaing
     -   [Get All Secrets](#get-all-secrets)
     -   [Get a Single Secret](#get-a-single-secret)
     -   [Delete a Secret](#delete-a-secret)
+    -   [Update a Secret](#update-a-secret)
 
 ## Introduction
 
@@ -92,6 +93,37 @@ GET /secrets/mySecretKey
 
 ```http
 DELETE /secrets/mySecretKey
+```
+
+**Example Response (204 No Content):**
+
+No content in the response body.
+
+### Updating a Secret
+
+-   **Endpoint:** `PATCH /secrets/:key`
+-   **Description:** Update the value of a secret by providing its key.
+-   **Request Parameters:**
+    -   `key`: The key of the secret to retrieve.
+-   **Request Body:**
+    -   `value`: The new value for the secret.
+-   **Responses:**
+    -   `204 No Content`: Secret successfully updated.
+    -   `404 Not Found`: Secret with the provided key does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+PATCH /secrets/mySecretKey
+```
+
+**Example Request Body:**
+
+```json
+{
+    "value": "Updated Value"
+}
 ```
 
 **Example Response (204 No Content):**
