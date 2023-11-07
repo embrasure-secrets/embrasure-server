@@ -7,6 +7,7 @@ This documentation provides information on the RESTful API endpoints for manaing
 -   [Introduction](#introduction)
 -   [Secrets API](#secrets-api)
     -   [Get All Secrets](#get-all-secrets)
+    -   [Get a Single Secret](#get-a-single-secret)
 
 ## Introduction
 
@@ -47,4 +48,30 @@ GET /secrets
         "value": "ac!@#$WDSca"
     }
 ]
+```
+
+### Get a Single Secret
+
+-   **Endpoint:** `GET /secrets/:key`
+-   **Description:** Retrieve a single secret by providing its key.
+-   **Request Parameters:**
+    -   `key`: The key of the secret to retrieve.
+-   **Responses:**
+    -   `200 OK`: Successfully retrieved the secret. Returns the secret data.
+    -   `404 Not Found`: Secret with the provided key does not exist.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+GET /secrets/mySecretKey
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+    "key": "mySecretKey",
+    "value": "My Secret Value"
+}
 ```
