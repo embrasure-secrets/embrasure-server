@@ -8,7 +8,7 @@ import getAllUsers from '../dataAccess/getAllUsers.js';
 const usersRouter = express.Router();
 
 // Get a user's permissions by username
-usersRouter.get('/:username', async (req, res) => {
+usersRouter.get('/:username', async (req, res, next) => {
     try {
         const { username } = req.params;
 
@@ -24,16 +24,22 @@ usersRouter.get('/:username', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Get all users
-usersRouter.get('/', async (req, res) => {
-    const users = await getAllUsers(res.locals.dbClient);
-    res.status(200).json(users);
+usersRouter.get('/', async (req, res, next) => {
+    try {
+        const users = await getAllUsers(res.locals.dbClient);
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+    next();
 });
 
 // Create a user
-usersRouter.post('/', async (req, res) => {
+usersRouter.post('/', async (req, res, next) => {
     try {
         const usersCreated = await addUser(
             res.locals.dbClient,
@@ -44,10 +50,11 @@ usersRouter.post('/', async (req, res) => {
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Edit a user's read/write permission
-usersRouter.put('/:username', async (req, res) => {
+usersRouter.put('/:username', async (req, res, next) => {
     try {
         const editPermissionResult = await editUserPermission(
             res.locals.dbClient,
@@ -65,10 +72,11 @@ usersRouter.put('/:username', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
-// Delete a secret by  key
-usersRouter.delete('/:username', async (req, res) => {
+// Delete a user by username
+usersRouter.delete('/:username', async (req, res, next) => {
     try {
         const { username } = req.params;
         /* 
@@ -84,6 +92,7 @@ usersRouter.delete('/:username', async (req, res) => {
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 export default usersRouter;

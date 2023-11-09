@@ -8,7 +8,7 @@ import addSecret from '../dataAccess/addSecret.js';
 const secretsRouter = express.Router();
 
 // Get a single secret by key
-secretsRouter.get('/:key', async (req, res) => {
+secretsRouter.get('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         const secret = await getSecret(res.locals.secretsTable, secretKey);
@@ -20,16 +20,22 @@ secretsRouter.get('/:key', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Get all secrets
-secretsRouter.get('/', async (req, res) => {
-    const secrets = await getAllSecrets(res.locals.secretsTable);
-    res.json(secrets);
+secretsRouter.get('/', async (req, res, next) => {
+    try {
+        const secrets = await getAllSecrets(res.locals.secretsTable);
+        res.json(secrets);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+    next();
 });
 
 // Delete a secret by  key
-secretsRouter.delete('/:key', async (req, res) => {
+secretsRouter.delete('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         /* 
@@ -45,10 +51,11 @@ secretsRouter.delete('/:key', async (req, res) => {
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Specify a secret by key and update its value
-secretsRouter.patch('/:key', async (req, res) => {
+secretsRouter.patch('/:key', async (req, res, next) => {
     try {
         const secretKey = req.params.key;
         const secretValue = req.body.value;
@@ -66,10 +73,11 @@ secretsRouter.patch('/:key', async (req, res) => {
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Create a secret
-secretsRouter.post('/', async (req, res) => {
+secretsRouter.post('/', async (req, res, next) => {
     console.log('req body', req.body);
     try {
         const secretKey = req.body.key;
@@ -84,6 +92,7 @@ secretsRouter.post('/', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 export default secretsRouter;

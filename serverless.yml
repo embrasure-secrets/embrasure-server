@@ -10,6 +10,9 @@ provider:
 functions:
     app:
         handler: src/index.handler
+        environment:
+            LOGS_WORKER_ACCESS_KEY: ${env:LOGS_WORKER_ACCESS_KEY}
+            LOGS_WORKER_SECRET_ACCESS_KEY: ${env:LOGS_WORKER_SECRET_ACCESS_KEY}
         vpc:
             securityGroupIds:
                 - ${env:SECURITY_GROUP_ID} # Replace with your security group ID
@@ -47,3 +50,6 @@ functions:
             - http:
                   path: /users/{username}
                   method: PUT
+            - http:
+                  path: /logs
+                  method: GET
