@@ -10,10 +10,16 @@ TBD AWAITING INFORMATION ON HOW THIS PROGRAM WILL ACTUALLY BE PROVIDED TO INTERE
 TBD AWAITING CREATION OF SETUP COMMAND
 ```
 
+## API Documentation
+
+You can find the detailed API documentation [here.](./src/documentation/api.md)
+
 ## Usage
+
 TBD AWAITING INFORMATION ON HOW OUR PROGRAM WILL ACTUALLY BE USED BY USERS
+
 ```node
-TBD
+TBD;
 ```
 
 ## Contributing
