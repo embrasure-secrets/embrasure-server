@@ -1,9 +1,8 @@
+import '../loadEnv.js';
 import serverless from 'serverless-http';
 import express from 'express';
 import helmet from 'helmet';
-// loadEnv should be probably moved to root directory
 import cors from 'cors';
-import './dataAccess/loadEnv.js';
 
 import secretsRouter from './routes/secrets.js';
 import usersRouter from './routes/users.js';
@@ -12,9 +11,12 @@ import getAllLogs from './dataAccess/getAllLogs.js';
 import client from './dataAccess/dbClient.js';
 import { Secrets, Logs } from './dataAccess/model.js';
 import initializeTables from './dataAccess/initializeTables.js';
+import isAuthenticated from './dataAccess/isAuthenticated.js';
+import addLogsWorker from './dataAccess/addLogsWorker.js';
+import generateDBAuthToken from './utils/generateDBAuthToken.js';
 
 const app = express();
-let initializedTables = false;
+app.locals.initializedTables = false;
 
 // Instantiate helmet
 app.use(helmet());
@@ -72,18 +74,52 @@ app.use((req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-    if (!initializedTables) {
-        await initializeTables(res.locals.dbClient);
-        initializedTables = true;
-    }
+    if (!req.app.locals.initializedTables) {
+        try {
+            await initializeTables(res.locals.dbClient);
+            await addLogsWorker(res.locals.dbClient);
+            req.app.locals.initializedTables = true;
 
+            next();
+        } catch (error) {
+            error.message = 'Not Authenticated';
+            next(error);
+        }
+    } else {
+        next();
+    }
+});
+
+app.use(async (req, res, next) => {
+    const authenticated = await isAuthenticated(res.locals.dbClient);
+    try {
+        if (!authenticated) {
+            throw new Error('Not Authenticated');
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.use(async (req, res, next) => {
     res.locals.secretsTable = await Secrets(res.locals.dbClient);
+    // may not work if authentication is wrong
     res.locals.logsTable = await Logs(res.locals.dbClient);
     next();
 });
 
 app.use('/secrets', secretsRouter);
 app.use('/users', usersRouter);
+
+app.get('/logs', async (req, res) => {
+    try {
+        const logs = await getAllLogs(res.locals.logsTable);
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 app.use(async (req, res, next) => {
     const logData = {
@@ -97,17 +133,54 @@ app.use(async (req, res, next) => {
         timestamp: Date.now(),
     };
 
-    await addLog(res.locals.logsTable, logData); // <-- THIS BITCH IS THE PROBLEM
-    next();
+    try {
+        await addLog(res.locals.logsTable, logData);
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
-// app.get('/logs', async (req, res) => {
-//     try {
-//         const logs = await getAllLogs(res.locals.logsTable);
-//         res.json(logs);
-//     } catch (error) {
-//         res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// });
+app.use(async (error, req, res, next) => {
+    try {
+        if (error.message === 'Not Authenticated') {
+            const logData = {
+                actor: req.header('db-username'),
+                ip_address: req.ip,
+                request_type: req.method,
+                resource_route: req.path,
+                is_request_authenticated: false, //
+                is_request_authorized: false, //
+                http_status_code: 401,
+                timestamp: Date.now(),
+            };
+
+            const dbName = req.header('db-name');
+            const dbHost = req.header('db-host');
+            const dbPort = req.header('db-port');
+
+            // remove hard-coded region
+            const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
+            const dbClientWorkerValues = {
+                dbName,
+                dbHost,
+                dbPort,
+                dbUsername: 'logsworker',
+                dbAuthToken: authToken,
+            };
+
+            const dbClient = client(dbClientWorkerValues);
+            const logsTable = await Logs(dbClient);
+
+            await addLog(logsTable, logData);
+            res.status(401).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    } catch (err) {
+        console.log('error is: ', err);
+        res.status(500).json({ error: 'Internal Server Error - final error' });
+    }
+});
 
 export const handler = serverless(app);
