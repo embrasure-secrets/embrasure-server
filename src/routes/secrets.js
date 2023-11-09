@@ -17,16 +17,20 @@ secretsRouter.get('/:key', async (req, res, next) => {
         } else {
             res.status(200).json(secret);
         }
-        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Get all secrets
 secretsRouter.get('/', async (req, res, next) => {
-    const secrets = await getAllSecrets(res.locals.secretsTable);
-    res.json(secrets);
+    try {
+        const secrets = await getAllSecrets(res.locals.secretsTable);
+        res.json(secrets);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
     next();
 });
 
@@ -44,10 +48,10 @@ secretsRouter.delete('/:key', async (req, res, next) => {
         } else {
             res.status(204).send();
         }
-        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Specify a secret by key and update its value
@@ -66,10 +70,10 @@ secretsRouter.patch('/:key', async (req, res, next) => {
         } else {
             res.status(204).send();
         }
-        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Create a secret
@@ -85,10 +89,10 @@ secretsRouter.post('/', async (req, res, next) => {
         } else {
             res.status(201).json({ key: createdSecret.key });
         }
-        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 export default secretsRouter;

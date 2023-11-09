@@ -21,10 +21,10 @@ usersRouter.get('/:username', async (req, res, next) => {
         } else {
             res.status(200).json(userPermissions);
         }
-        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Get all users
@@ -32,10 +32,10 @@ usersRouter.get('/', async (req, res, next) => {
     try {
         const users = await getAllUsers(res.locals.dbClient);
         res.status(200).json(users);
-        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Create a user
@@ -47,10 +47,10 @@ usersRouter.post('/', async (req, res, next) => {
             req.body.hasWritePermissions
         );
         res.status(201).json({ usersCreated });
-        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 // Edit a user's read/write permission
@@ -69,10 +69,10 @@ usersRouter.put('/:username', async (req, res, next) => {
         } else {
             res.status(200).json(editPermissionResult);
         }
-        next();
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    next();
 });
 
 // Delete a user by username
@@ -89,10 +89,10 @@ usersRouter.delete('/:username', async (req, res, next) => {
         } else {
             res.status(204).send();
         }
-        next();
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
+    next();
 });
 
 export default usersRouter;
