@@ -17,7 +17,7 @@ import generateDBAuthToken from './utils/generateDBAuthToken.js';
 
 const app = express();
 app.locals.initializedTables = false;
-
+console.log('app.locals.initializedTables is: ', app.locals.initializedTables);
 // Instantiate helmet
 app.use(helmet());
 
@@ -69,7 +69,10 @@ app.use((req, res, next) => {
     const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
     const dbClient = client(dbClientValues);
     res.locals.dbClient = dbClient;
-
+    res.locals.dbName = dbName;
+    res.locals.dbHost = dbHost;
+    res.locals.dbPort = dbPort;
+    console.log('dbClientValues are: ', dbClientValues);
     next();
 });
 
@@ -105,7 +108,7 @@ app.use(async (req, res, next) => {
 app.use(async (req, res, next) => {
     res.locals.secretsTable = await Secrets(res.locals.dbClient);
     // may not work if authentication is wrong
-    res.locals.logsTable = await Logs(res.locals.dbClient);
+    // res.locals.logsTable = await Logs(res.locals.dbClient);
     next();
 });
 
@@ -127,60 +130,85 @@ app.use(async (req, res, next) => {
         ip_address: req.ip, //
         request_type: req.method,
         resource_route: req.path,
-        is_request_authenticated: false, //
-        is_request_authorized: false, //
+        is_request_authenticated: true, //
+        is_request_authorized: true, //
         http_status_code: res.statusCode,
         timestamp: Date.now(),
     };
 
     try {
-        await addLog(res.locals.logsTable, logData);
-        next();
+        const { dbName, dbHost, dbPort } = res.locals;
+
+        // remove hard-coded region
+        const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
+        const dbClientWorkerValues = {
+            dbName,
+            dbHost,
+            dbPort,
+            dbUsername: 'logsworker',
+            dbAuthToken: authToken,
+        };
+        //
+        const dbClient = client(dbClientWorkerValues);
+        const logsTable = await Logs(dbClient);
+        console.log('logData good requests is: ', logData);
+        await addLog(logsTable, logData, dbClient);
+        // await addLog(res.locals.logsTable, logData);
+        // next();
     } catch (error) {
+        console.log('log adding middleware:', error);
         next(error);
     }
 });
 
 app.use(async (error, req, res, next) => {
-    try {
-        if (error.message === 'Not Authenticated') {
-            const logData = {
-                actor: req.header('db-username'),
-                ip_address: req.ip,
-                request_type: req.method,
-                resource_route: req.path,
-                is_request_authenticated: false, //
-                is_request_authorized: false, //
-                http_status_code: 401,
-                timestamp: Date.now(),
-            };
+    // try {
+    //     if (error.message === 'Not Authenticated') {
+    //         const logData = {
+    //             actor: req.header('db-username'),
+    //             ip_address: req.ip,
+    //             request_type: req.method,
+    //             resource_route: req.path,
+    //             is_request_authenticated: false, //
+    //             is_request_authorized: false, //
+    //             http_status_code: 401,
+    //             timestamp: Date.now(),
+    //         };
 
-            const dbName = req.header('db-name');
-            const dbHost = req.header('db-host');
-            const dbPort = req.header('db-port');
+    //         const { dbName, dbHost, dbPort } = res.locals;
 
-            // remove hard-coded region
-            const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
-            const dbClientWorkerValues = {
-                dbName,
-                dbHost,
-                dbPort,
-                dbUsername: 'logsworker',
-                dbAuthToken: authToken,
-            };
+    //         // remove hard-coded region
+    //         const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
+    //         const dbClientWorkerValues = {
+    //             dbName,
+    //             dbHost,
+    //             dbPort,
+    //             dbUsername: 'logsworker',
+    //             dbAuthToken: authToken,
+    //         };
 
-            const dbClient = client(dbClientWorkerValues);
-            const logsTable = await Logs(dbClient);
-
-            await addLog(logsTable, logData);
-            res.status(401).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    } catch (err) {
-        console.log('error is: ', err);
-        res.status(500).json({ error: 'Internal Server Error - final error' });
-    }
+    //         const dbClient = client(dbClientWorkerValues);
+    //         const logsTable = await Logs(dbClient);
+    //         console.log('logData bad requests is: ', logData);
+    //         await addLog(logsTable, logData);
+    //         console.log(
+    //             'not authenticated: status code before sending response is...',
+    //             res.statusCode
+    //         );
+    //         res.status(401).json({ error: error.message });
+    //     } else {
+    //         console.log(
+    //             'else statement: status code before sending response is...',
+    //             res.statusCode
+    //         );
+    //         res.status(500).json({ error: 'Internal Server Error' });
+    //     }
+    // } catch (err) {
+    //     console.log('catch: status code before sending response is... ', res.statusCode);
+    //     console.log('error is: ', err);
+    //     res.status(500).json({ error: 'Internal Server Error - final error' });
+    // }
+    res.status(500).json({ error: 'Internal Server Error - final error' });
 });
 
 export const handler = serverless(app);
