@@ -1,19 +1,35 @@
 async function addLogsWorker(client) {
     const username = 'logsworker';
     const transaction = await client.transaction();
-
+    const logsWorkerExistsQuery = await client.query(
+        `SELECT FROM pg_catalog.pg_roles WHERE  rolname = 'logsworker'`,
+        {
+            transaction,
+        }
+    );
+    let logsWorkerExists = logsWorkerExistsQuery[0].length > 0;
+    console.log('logsWorkerExists results : ', logsWorkerExists);
+    const nooneExists = await client.query(
+        `SELECT FROM pg_catalog.pg_roles WHERE  rolname = 'noone'`,
+        {
+            transaction,
+        }
+    );
+    console.log('noone results : ', nooneExists);
     try {
-        await client.query(
-            `CREATE USER ${username} WITH LOGIN`,
+        if (!logsWorkerExists) {
+            await client.query(
+                `CREATE USER ${username} WITH LOGIN`,
 
-            { transaction }
-        );
+                { transaction }
+            );
 
-        await client.query(
-            `GRANT rds_iam TO ${username};`,
+            await client.query(
+                `GRANT rds_iam TO ${username};`,
 
-            { transaction }
-        );
+                { transaction }
+            );
+        }
 
         await client.query(
             `GRANT INSERT, UPDATE, DELETE, SELECT ON public."Logs" TO ${username};`,
