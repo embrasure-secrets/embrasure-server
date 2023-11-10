@@ -16,12 +16,29 @@ const CREATE_LOGS_TABLE_COMMAND = `CREATE TABLE IF NOT EXISTS "Logs" (
   http_status_code INTEGER NOT NULL
 );`;
 
+const logsTableExistsQuery = `SELECT EXISTS (
+  SELECT FROM information_schema.tables 
+  WHERE table_schema = 'public'
+  AND table_name = 'Logs'
+);`;
+
+const secretsTableExistsQuery = `SELECT EXISTS (
+  SELECT FROM information_schema.tables 
+  WHERE table_schema = 'public'
+  AND table_name = 'Secrets'
+);`;
+
 async function initializeTables(client) {
     const transaction = await client.transaction();
-
     try {
-        await client.query(CREATE_SECRETS_TABLE_COMMAND, { transaction });
-        await client.query(CREATE_LOGS_TABLE_COMMAND, { transaction });
+        const logsTableExists = await client.query(logsTableExistsQuery, { transaction });
+        const secretsTableExists = await client.query(secretsTableExistsQuery, { transaction });
+        console.log('logsTableExists: ', logsTableExists);
+        console.log('secretsTableExists: ', secretsTableExists);
+        if (!logsTableExists[0][0].exists && !secretsTableExists[0][0].exists) {
+            await client.query(CREATE_SECRETS_TABLE_COMMAND, { transaction });
+            await client.query(CREATE_LOGS_TABLE_COMMAND, { transaction });
+        }
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();
