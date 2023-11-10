@@ -5,7 +5,8 @@ const client = ({ dbName, dbHost, dbPort, dbUsername, dbAuthToken }) => {
         host: dbHost,
         dialect: 'postgres',
         port: dbPort,
-        logging: false,
+        // logging: false,
+        logging: true,
         dialectOptions: {
             ssl: {
                 require: true,
@@ -13,8 +14,13 @@ const client = ({ dbName, dbHost, dbPort, dbUsername, dbAuthToken }) => {
             },
         },
         pool: {
+            max: 2,
+            min: 0,
+            // acquire: 3000,
             acquire: 3000,
-            idle: 1,
+            // idle: 1,
+            idle: 0,
+            evict: 6000,
         },
     });
 };
