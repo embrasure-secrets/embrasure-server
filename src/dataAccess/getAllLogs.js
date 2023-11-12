@@ -1,6 +1,6 @@
 async function getAllLogs(table) {
     try {
-        const allLogs = await table.findAll();
+        const allLogs = await table.findAll({ order: [['id', 'ASC']] });
         const logsFormatted = allLogs.map(({ dataValues }) => dataValues);
         return logsFormatted;
     } catch (error) {
