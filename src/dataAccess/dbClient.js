@@ -12,16 +12,19 @@ const client = ({ dbName, dbHost, dbPort, dbUsername, dbAuthToken }) => {
                 require: true,
                 rejectUnauthorized: false,
             },
+            statement_timeout: 10000,
+            connectionTimeoutMillis: 10000,
+            idle_in_transaction_session_timeout: 10000,
         },
-        pool: {
-            max: 1000,
-            min: 0,
-            // acquire: 3000,
-            acquire: 10000,
-            // idle: 1,
-            idle: 5000,
-            // evict: 6000,
-        },
+        // pool: {
+        //     max: 1,
+        //     min: 0,
+        //     // acquire: 3000,
+        //     acquire: 3000,
+        //     // idle: 1,
+        //     idle: 1000,
+        //     // evict: 6000,
+        // },
     });
 };
 
