@@ -21,41 +21,54 @@ usersRouter.get('/:username', async (req, res, next) => {
         } else {
             res.status(200).json(userPermissions);
         }
+        next();
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.log('error in showing users permissions is: ', error);
+        next(error);
     }
-    next();
 });
 
 // Get all users
 usersRouter.get('/', async (req, res, next) => {
     try {
+        if (res.locals.activeUser === 'nonadmin') {
+            throw new Error('Not Authorized');
+        }
         const users = await getAllUsers(res.locals.dbClient);
         res.status(200).json(users);
+        next();
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.log('error in getting all users: ', error);
+        next(error);
     }
-    next();
 });
 
 // Create a user
 usersRouter.post('/', async (req, res, next) => {
     try {
+        if (res.locals.activeUser === 'nonadmin') {
+            throw new Error('Not Authorized');
+        }
         const usersCreated = await addUser(
             res.locals.dbClient,
             req.body.username,
             req.body.hasWritePermissions
         );
         res.status(201).json({ usersCreated });
+        next();
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        console.log('error in getting creating user: ', error);
+        next(error);
     }
-    next();
 });
 
 // Edit a user's read/write permission
 usersRouter.put('/:username', async (req, res, next) => {
     try {
+        if (res.locals.activeUser === 'nonadmin') {
+            throw new Error('Not Authorized');
+        }
+
         const editPermissionResult = await editUserPermission(
             res.locals.dbClient,
             req.body.username,
@@ -69,15 +82,19 @@ usersRouter.put('/:username', async (req, res, next) => {
         } else {
             res.status(200).json(editPermissionResult);
         }
+        next();
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.log('error in editing user permissions: ', error);
+        next(error);
     }
-    next();
 });
 
 // Delete a user by username
 usersRouter.delete('/:username', async (req, res, next) => {
     try {
+        if (res.locals.activeUser === 'nonadmin') {
+            throw new Error('Not Authorized');
+        }
         const { username } = req.params;
         /* 
   deleteUser returns 1 if a user was found and deleted, 0 otherwise
@@ -89,10 +106,11 @@ usersRouter.delete('/:username', async (req, res, next) => {
         } else {
             res.status(204).send();
         }
+        next();
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        console.log('error in deleting user: ', error);
+        next(error);
     }
-    next();
 });
 
 export default usersRouter;
