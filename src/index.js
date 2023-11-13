@@ -14,10 +14,10 @@ import initializeTables from './dataAccess/initializeTables.js';
 import isAuthenticated from './dataAccess/isAuthenticated.js';
 import addLogsWorker from './dataAccess/addLogsWorker.js';
 import generateDBAuthToken from './utils/generateDBAuthToken.js';
+import isUserNonadmin from './utils/isUserNonadmin.js';
 
 const app = express();
-app.locals.initializedTables = false;
-console.log('app.locals.initializedTables is: ', app.locals.initializedTables);
+
 // Instantiate helmet
 app.use(helmet());
 
@@ -59,46 +59,61 @@ app.use(express.json());
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
+app.locals.logsWorkerClientCreated = false;
+app.locals.logsTable = null;
+app.locals.logsWorkerDbClient = null;
+app.locals.tablesInit = false;
+app.locals.dbHost = null;
+app.locals.dbPort = null;
+app.locals.dbName = null;
+
 // Use request headers to connect to database
-app.use((req, res, next) => {
-    const dbUsername = req.header('db-username');
-    const dbAuthToken = req.header('db-auth-token');
-    const dbName = req.header('db-name');
-    const dbHost = req.header('db-host');
-    const dbPort = req.header('db-port');
-    const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
-    const dbClient = client(dbClientValues);
-    res.locals.dbClient = dbClient;
-    res.locals.dbName = dbName;
-    res.locals.dbHost = dbHost;
-    res.locals.dbPort = dbPort;
-    console.log('dbClientValues are: ', dbClientValues);
-    next();
-});
-
-// Initializes Logs and Secrets tables and creates a logs worker
 app.use(async (req, res, next) => {
-    if (!req.app.locals.initializedTables) {
-        try {
-            await initializeTables(res.locals.dbClient);
-            await addLogsWorker(res.locals.dbClient);
-            req.app.locals.initializedTables = true;
-
-            next();
-        } catch (error) {
-            error.message = 'Not Authenticated';
-            next(error);
+    try {
+        const dbUsername = req.header('db-username');
+        // const userIsNonadmin = await isUserNonadmin(dbUsername);
+        const userIsNonadmin = dbUsername !== 'postgres';
+        const dbAuthToken = req.header('db-auth-token');
+        const dbName = req.header('db-name');
+        const dbHost = req.header('db-host');
+        const dbPort = req.header('db-port');
+        app.locals.dbName = dbName;
+        app.locals.dbHost = dbHost;
+        app.locals.dbPort = dbPort;
+        const dbClientValues = { dbName, dbHost, dbPort, dbUsername, dbAuthToken };
+        const dbClient = client(dbClientValues);
+        console.log('dbClientValues are: ', dbClientValues);
+        res.locals.dbClient = dbClient;
+        if (userIsNonadmin) {
+            res.locals.activeUser = 'nonadmin';
+        } else if (userIsNonadmin === false) {
+            res.locals.activeUser = 'admin';
         }
-    } else {
         next();
+    } catch (error) {
+        res.status(500).json({ error: 'is user nonadmin error' });
     }
 });
+// res.locals.dbClient is now an admin client or nonadmin client
+// we still need to check the authenticate the client however
+// res.locals.activeUser is now 'admin' or 'nonadmin'
 
 // Check if request has proper authentication
 app.use(async (req, res, next) => {
-    const authenticated = await isAuthenticated(res.locals.dbClient);
     try {
-        if (!authenticated) {
+        res.locals.isAuthenticated = await isAuthenticated(res.locals.dbClient);
+        next();
+    } catch (error) {
+        console.log('error in authentication: ', error);
+        res.status(500).json({ error: 'error in authentication' });
+    }
+});
+
+app.use(async (req, res, next) => {
+    try {
+        console.log('authentication middleware runs');
+        if (!res.locals.isAuthenticated) {
+            console.log('User is not authenticated!');
             throw new Error('Not Authenticated');
         }
         next();
@@ -106,33 +121,106 @@ app.use(async (req, res, next) => {
         next(error);
     }
 });
+// at this point, admin or nonadmin is authenticated
+// res.locals.dbClient is now an admin client or nonadmin client
+// res.locals.activeUser is now 'admin' or 'nonadmin'
 
-// Middleware that connects to logsTable
-// app.use(async (req, res, next) => {
-//     try {
-//         const { dbName, dbHost, dbPort } = res.locals;
-//         // remove hard-coded region
-//         const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
-//         const dbClientWorkerValues = {
-//             dbName,
-//             dbHost,
-//             dbPort,
-//             dbUsername: 'logsworker',
-//             dbAuthToken: authToken,
-//         };
-//         const logsClient = client(dbClientWorkerValues); // creates NEW sequelize connection
-//         res.locals.logsTable = await Logs(logsClient);
-//     } catch (error) {
-//         console.log('log adding middleware:', error);
-//         next(error);
-//     }
-// });
+// the admin makes the logsworker
+// the admin will then create the secrets table and logs table
+// the logsworker credentials will be used to check incoming users for authentication purposes and
+// if they are admin or non-admin
+app.use(async (req, res, next) => {
+    try {
+        console.log('creating logs worker and initializing tables');
+        if (req.app.locals.tablesInit === false && res.locals.activeUser === 'admin') {
+            await initializeTables(res.locals.dbClient);
+            await addLogsWorker(res.locals.dbClient);
+            req.app.locals.tablesInit = true;
+        } else if (req.app.locals.tablesInit === false && res.locals.activeUser === 'nonadmin') {
+            throw new Error('User Not Permitted to create logs worker and tables ');
+        }
+        next();
+    } catch (error) {
+        console.log('error in creating tables/log worker: ', error);
+        res.status(500).json({ error: 'Tables and log worker not created yet' });
+    }
+});
+//logs worker now exists and Secrets and Logs tables exist
+
+app.locals.dbAuthToken = null;
+app.locals.MILLISECONDS_IN_10_MINUTES = 600000;
+app.locals.refreshToken = setInterval(async () => {
+    app.locals.dbAuthToken = null;
+}, app.locals.MILLISECONDS_IN_10_MINUTES);
 
 app.use(async (req, res, next) => {
-    res.locals.secretsTable = await Secrets(res.locals.dbClient);
-    // may not work if authentication is wrong
-    res.locals.logsTable = await Logs(res.locals.dbClient);
-    next();
+    try {
+        if (req.app.locals.dbAuthToken === null) {
+            const { dbHost, dbPort } = app.locals;
+            const authToken = await generateDBAuthToken(
+                process.env.REGION,
+                dbHost,
+                dbPort,
+                'logsworker'
+            );
+            req.app.locals.dbAuthToken = authToken;
+            req.app.locals.logsWorkerClientCreated = false;
+            console.log('168 authtoken is: ', authToken);
+        }
+        next();
+    } catch (error) {
+        console.log('error in creating log worker authtoken: ', error);
+        res.status(500).json({ error: 'error in creating log worker authtoken' });
+    }
+});
+// res.locals.dbClient is an authenticated admin client or authed nonadmin client
+// logs worker exists, tables exist
+// logs worker dbAuth token exists
+
+// create logsworker db client
+app.use(async (req, res, next) => {
+    try {
+        if (req.app.locals.logsWorkerClientCreated === false) {
+            const { dbName, dbHost, dbPort } = app.locals;
+            const dbClientWorkerValues = {
+                dbName,
+                dbHost,
+                dbPort,
+                dbUsername: 'logsworker',
+                dbAuthToken: req.app.locals.dbAuthToken,
+            };
+            const logsWorkerDbClient = client(dbClientWorkerValues);
+            req.app.locals.logsWorkerDbClient = logsWorkerDbClient;
+            req.app.locals.logsWorkerClientCreated = true;
+            req.app.locals.logsTable = await Logs(req.app.locals.logsWorkerDbClient);
+        }
+        next();
+    } catch (error) {
+        console.log('error in creating logs worker client is: ', error);
+        res.status(500).json({ error: 'error in creating logs worker client' });
+    }
+});
+
+/*
+// dbClient that is authed admin or non admin 
+// logs worker exists, tables exist
+// logs worker dbAuth token exists
+// logs worker db client exists
+// logs worker connection between logs table and logs worker client exists
+
+// res.locals.dbClient
+// req.app.locals.logsWorkerDbClient - will reuse every 10 minutes
+// req.app.locals.logsTable - connection between logs table and logsworker db client exists
+*/
+
+app.use(async (req, res, next) => {
+    try {
+        res.locals.secretsTable = await Secrets(res.locals.dbClient);
+        next();
+    } catch (error) {
+        console.log('error in connecting db clients to tables: ', error);
+        res.status(500).json({ error: 'error in connecting db clients to tables' });
+    }
 });
 
 app.use('/secrets', secretsRouter);
@@ -140,100 +228,86 @@ app.use('/users', usersRouter);
 
 app.get('/logs', async (req, res) => {
     try {
-        const logs = await getAllLogs(res.locals.logsTable);
+        if (res.locals.activeUser !== 'admin') {
+            throw new Error('Not authorized to get logs');
+        }
+        console.log('getting all logs runs');
+        const logs = await getAllLogs(req.app.locals.logsTable);
         res.json(logs);
     } catch (error) {
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.log('error in getting all logs is: ', error);
+        res.status(500).json({ error: 'Error in getting all logs' });
     }
 });
 
 // Middleware to add log for successful request
-// app.use(async (req, res, next) => {
-//     const logData = {
-//         actor: req.header('db-username'),
-//         ip_address: req.ip, //
-//         request_type: req.method,
-//         resource_route: req.path,
-//         is_request_authenticated: true, //
-//         is_request_authorized: true, //
-//         http_status_code: res.statusCode,
-//         timestamp: Date.now(),
-//     };
+app.use(async (req, res, next) => {
+    try {
+        const logData = {
+            actor: req.header('db-username'),
+            ip_address: req.ip, //
+            request_type: req.method,
+            resource_route: req.path,
+            is_request_authenticated: true, //
+            is_request_authorized: true, //
+            http_status_code: res.statusCode,
+            timestamp: Date.now(),
+        };
+        console.log('logData good requests is: ', logData);
 
-//     try {
-//         const { dbName, dbHost, dbPort } = res.locals;
+        const logsTable = req.app.locals.logsTable;
 
-//         // remove hard-coded region
-//         const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
-//         const dbClientWorkerValues = {
-//             dbName,
-//             dbHost,
-//             dbPort,
-//             dbUsername: 'logsworker',
-//             dbAuthToken: authToken,
-//         };
-//         //
-//         const dbClient = client(dbClientWorkerValues);
-//         const logsTable = await Logs(dbClient);
-//         console.log('logData good requests is: ', logData);
-//         await addLog(logsTable, logData, dbClient);
-//         // await addLog(res.locals.logsTable, logData);
-//         // next();
-//     } catch (error) {
-//         console.log('log adding middleware:', error);
-//         next(error);
-//     }
-// });
+        console.log('261 about to add a new log');
+        await logsTable.create(logData);
+        console.log('263 just added a new log');
+    } catch (error) {
+        console.log('Error in adding a good request log:', error);
+        next(error);
+    }
+});
 
 //  Middleware to add log for failed requests
-// app.use(async (error, req, res, next) => {
-//     try {
-//         if (error.message === 'Not Authenticated') {
-//             const logData = {
-//                 actor: req.header('db-username'),
-//                 ip_address: req.ip,
-//                 request_type: req.method,
-//                 resource_route: req.path,
-//                 is_request_authenticated: false, //
-//                 is_request_authorized: false, //
-//                 http_status_code: 401,
-//                 timestamp: Date.now(),
-//             };
+app.use(async (error, req, res, next) => {
+    try {
+        let statusCode;
+        let errorMessage;
 
-//             const { dbName, dbHost, dbPort } = res.locals;
+        const logData = {
+            actor: req.header('db-username'),
+            ip_address: req.ip,
+            request_type: req.method,
+            resource_route: req.path,
+            is_request_authenticated: false,
+            is_request_authorized: false,
+            // http_status_code: 401,
+            timestamp: Date.now(),
+        };
 
-//             // remove hard-coded region
-//             const authToken = await generateDBAuthToken('us-east-1', dbHost, dbPort, 'logsworker');
-//             const dbClientWorkerValues = {
-//                 dbName,
-//                 dbHost,
-//                 dbPort,
-//                 dbUsername: 'logsworker',
-//                 dbAuthToken: authToken,
-//             };
+        if (error.message === 'Not Authenticated') {
+            logData.http_status_code = 401;
+            statusCode = 401;
+            errorMessage = { error: error.message };
+        } else if (error.message === 'Not Authorized') {
+            logData.http_status_code = 403;
+            statusCode = 403;
+            logData.is_request_authenticated = true;
+            errorMessage = { error: error.message };
+        } else {
+            next(error);
+        }
+        const logsTable = req.app.locals.logsTable;
+        await addLog(logsTable, logData);
+        res.status(statusCode).json(errorMessage);
+    } catch (err) {
+        console.log('catch: status code before sending response is... ', res.statusCode);
+        console.log('error is: ', err);
+        res.status(500).json({ error: 'Internal Server Error - penultimate error' });
+    }
+});
 
-//             const dbClient = client(dbClientWorkerValues);
-//             const logsTable = await Logs(dbClient);
-//             console.log('logData bad requests is: ', logData);
-//             await addLog(logsTable, logData);
-//             console.log(
-//                 'not authenticated: status code before sending response is...',
-//                 res.statusCode
-//             );
-//             res.status(401).json({ error: error.message });
-//         } else {
-//             console.log(
-//                 'else statement: status code before sending response is...',
-//                 res.statusCode
-//             );
-//             res.status(500).json({ error: 'Internal Server Error' });
-//         }
-//     } catch (err) {
-//         console.log('catch: status code before sending response is... ', res.statusCode);
-//         console.log('error is: ', err);
-//         res.status(500).json({ error: 'Internal Server Error - final error' });
-//     }
-//     res.status(500).json({ error: 'Internal Server Error - final error' });
-// });
+app.use(async (error, req, res, next) => {
+    console.log('error is: ', error.message);
+    res.status(500).json({ error: 'Internal Server Error - final error' });
+});
 
 export const handler = serverless(app);
