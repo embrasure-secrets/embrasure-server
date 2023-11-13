@@ -13,6 +13,7 @@ functions:
         environment:
             LOGS_WORKER_ACCESS_KEY: ${env:LOGS_WORKER_ACCESS_KEY}
             LOGS_WORKER_SECRET_ACCESS_KEY: ${env:LOGS_WORKER_SECRET_ACCESS_KEY}
+            REGION: ${env:REGION}
         vpc:
             securityGroupIds:
                 - ${env:SECURITY_GROUP_ID} # Replace with your security group ID
