@@ -94,9 +94,6 @@ app.use(async (req, res, next) => {
         res.status(500).json({ error: 'is user nonadmin error' });
     }
 });
-// res.locals.dbClient is now an admin client or nonadmin client
-// we still need to check the authenticate the client however
-// res.locals.activeUser is now 'admin' or 'nonadmin'
 
 // Check if request has proper authentication
 app.use(async (req, res, next) => {
@@ -121,14 +118,8 @@ app.use(async (req, res, next) => {
         next(error);
     }
 });
-// at this point, admin or nonadmin is authenticated
-// res.locals.dbClient is now an admin client or nonadmin client
-// res.locals.activeUser is now 'admin' or 'nonadmin'
 
-// the admin makes the logsworker
-// the admin will then create the secrets table and logs table
-// the logsworker credentials will be used to check incoming users for authentication purposes and
-// if they are admin or non-admin
+// create logs worker and initialize tables
 app.use(async (req, res, next) => {
     try {
         console.log('creating logs worker and initializing tables');
@@ -145,7 +136,6 @@ app.use(async (req, res, next) => {
         res.status(500).json({ error: 'Tables and log worker not created yet' });
     }
 });
-//logs worker now exists and Secrets and Logs tables exist
 
 app.locals.dbAuthToken = null;
 app.locals.MILLISECONDS_IN_10_MINUTES = 600000;
@@ -173,9 +163,6 @@ app.use(async (req, res, next) => {
         res.status(500).json({ error: 'error in creating log worker authtoken' });
     }
 });
-// res.locals.dbClient is an authenticated admin client or authed nonadmin client
-// logs worker exists, tables exist
-// logs worker dbAuth token exists
 
 // create logsworker db client
 app.use(async (req, res, next) => {
@@ -200,18 +187,6 @@ app.use(async (req, res, next) => {
         res.status(500).json({ error: 'error in creating logs worker client' });
     }
 });
-
-/*
-// dbClient that is authed admin or non admin 
-// logs worker exists, tables exist
-// logs worker dbAuth token exists
-// logs worker db client exists
-// logs worker connection between logs table and logs worker client exists
-
-// res.locals.dbClient
-// req.app.locals.logsWorkerDbClient - will reuse every 10 minutes
-// req.app.locals.logsTable - connection between logs table and logsworker db client exists
-*/
 
 app.use(async (req, res, next) => {
     try {

@@ -17,6 +17,8 @@ This documentation provides information on the RESTful API endpoints for managin
     -   [Delete User](#delete-user)
     -   [Edit User Permissions](#edit-user-permissions)
     -   [Create User](#create-user)
+-   [Logs API](#logs-api)
+    -   [Get All Logs](#get-all-logs)
 
 ## Introduction
 
@@ -36,6 +38,8 @@ The Embrasure API requires authentication via request headers. You should includ
 -   `db-name`: The name of the database.
 -   `db-host`: The database host URL.
 -   `db-port`: The database port.
+
+## Secrets API
 
 ### Get All Secrets
 
@@ -318,4 +322,37 @@ POST /users
 {
     "username": "newuser"
 }
+```
+
+## Logs API
+
+### Get All Logs
+
+-   **Endpoint:** `GET /logs`
+-   **Description:** Retrieve a list of all logs.
+-   **Responses:**
+    -   `200 OK`: Successfully retrieved the list of logs.
+    -   `500 Internal Server Error`: An error occurred on the server.
+
+**Example Request:**
+
+```http
+GET /logs
+```
+
+**Example Response (200 OK):**
+
+```json
+[
+    {
+        "actor": "bob",
+        "ip_address": "196.20.24.250",
+        "request_type": "GET",
+        "resource_route": "secrets",
+        "is_request_authenticated": true,
+        "is_request_authorized": true,
+        "http_status_code": 200,
+        "timestamp": 1701201784078
+    }
+]
 ```
